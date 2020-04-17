@@ -15,7 +15,21 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0" colspan="2">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="Browse1">
+      <property name="text">
+       <string>Browse1</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1" colspan="2">
+     <widget class="QSlider" name="mixer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2">
      <widget class="QTableWidget" name="table1">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
@@ -29,14 +43,35 @@
         <height>0</height>
        </size>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
       <property name="lineWidth">
        <number>1</number>
       </property>
+      <property name="midLineWidth">
+       <number>0</number>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustIgnored</enum>
+      </property>
+      <property name="showGrid">
+       <bool>true</bool>
+      </property>
       <property name="gridStyle">
-       <enum>Qt::SolidLine</enum>
+       <enum>Qt::CustomDashLine</enum>
       </property>
       <property name="sortingEnabled">
        <bool>false</bool>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="cornerButtonEnabled">
+       <bool>true</bool>
       </property>
       <property name="rowCount">
        <number>7</number>
@@ -50,8 +85,11 @@
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
       </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>235</number>
+      </attribute>
       <attribute name="verticalHeaderDefaultSectionSize">
-       <number>41</number>
+       <number>45</number>
       </attribute>
       <row/>
       <row/>
@@ -63,7 +101,27 @@
       <column/>
      </widget>
     </item>
-    <item row="1" column="2">
+    <item row="0" column="0">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="Browse2">
+      <property name="text">
+       <string>Browse2</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
      <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -75,27 +133,6 @@
        </size>
       </property>
      </spacer>
-    </item>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="Browse1">
-      <property name="text">
-       <string>Browse1</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QSlider" name="mixer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="Browse2">
-      <property name="text">
-       <string>Browse2</string>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
