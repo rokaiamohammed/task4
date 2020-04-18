@@ -3,10 +3,13 @@ from task4 import Ui_MainWindow
 import sys
 import matplotlib.pyplot as plt
 from scipy import signal
+import scipy
+import scipy.io.wavfile as wav
 from scipy.io import wavfile
 import os
 import wave
 import pylab
+# from scikits.audiolab import wavread
 import numpy as np
 # from matplotlib import pyplot as plt
 # import scipy.io.wavfile as wav
@@ -17,6 +20,7 @@ import pandas as pd
 from glob import glob
 
 from scipy.io import wavfile
+
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -25,21 +29,59 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.Browse1.clicked.connect(lambda: self.browse(1))
         self.ui.Browse2.clicked.connect(lambda: self.browse(2))
         self.signal=[]
+        self.data_dir='./database'
+        self.SG=glob(self.data_dir+'/*.wav')
+        print(len(self.SG))
+        for i in range(len(self.SG)):
+            FS, data = wavfile.read(self.SG[i])  # read wav file
+            ls[i]=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot)
+            # ffile=open("spectrogram.txt", "w")
+            #     for spectros in ls[i]:
+            #         for spectro in spectros:
+            #             lline = str(spectro) + " \t"
+            #             ffile.write(lline)
+            #         # one row written 
+            #         ffile.write(' \n') 
+            #     ffile.close() 
+        with open('testfile.txt', 'w+') as f: 
+        
+        file.write("Hello World") 
+        file.write("This is our new text file") 
+        # file.write(“and this is another line.”) 
+        # file.write(“Why? Because we can.”) 
+        file.close() 
+
+
 
     def browse(self,n):
         options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog    
-        filePath = QtWidgets.QFileDialog.getOpenFileNames(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
-        temp=filePath
-        for vs in temp[0]:
-            self.ext = os.path.splitext(vs)[-1].lower()
-            pinky=filePath[0]
-            self.samplerate, self.signal=wavfile.read(pinky[0])
-            self.secs=np.arange(self.signal.shape[0])/float(self.samplerate)    
-        if n==1:
-            self.file1=self.signal
-        elif n==2:
-            self.file2=self.signal
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
+        if fileName:
+            FS, data = wavfile.read(fileName)  # read wav file
+            plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
+            plt.show()
+            if n==1:
+                self.file1=data[:,0]
+            elif n==2:
+                self.file2=data[:,0]
+
+  
+
+    # def browse(self,n):
+    #     options = QtWidgets.QFileDialog.Options()
+    #     options |= QtWidgets.QFileDialog.DontUseNativeDialog    
+    #     filePath = QtWidgets.QFileDialog.getOpenFileNames(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
+    #     temp=filePath
+    #     for vs in temp[0]:
+    #         self.ext = os.path.splitext(vs)[-1].lower()
+    #         pinky=filePath[0]
+    #         self.samplerate, self.signal=wavfile.read(pinky[0])
+    #         self.secs=np.arange(self.signal.shape[0])/float(self.samplerate)    
+    #     if n==1:
+    #         self.file1=self.signal
+    #     elif n==2:
+    #         self.file2=self.signal
         
         # fig,ax=plt.subplots()
         # ax.plot(self.secs,self.file1)
@@ -59,11 +101,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             
 
         # Plot the spectrogram
-        plot.subplot(212)
-        powerSpectrum, freqenciesFound, time, imageAxis = plot.specgram(self.signal[1], Fs=self.samplerate)
-        plot.xlabel('Time')
-        plot.ylabel('Frequency')
-        plot.show()   
+        # plot.subplot(212)
+        # powerSpectrum, freqenciesFound, time, imageAxis = plot.specgram(self.signal[1], Fs=self.samplerate)
+        # plot.xlabel('Time')
+        # plot.ylabel('Frequency')
+        # plot.show()   
 
 
         
@@ -131,7 +173,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #     hopSize = int(frameSize - np.floor(overlapFac * frameSize))
         
     #     # zeros at beginning (thus center of 1st window should be for sample nr. 0)
-    #     samples = np.append(np.zeros(int(np.floor(frameSize/2.0)), sig))          # cols for windowing
+    #     samples = np.append(np.zeros(np.floor(frameSize/2.0)), sig)        
     #     cols = np.ceil( (len(samples) - frameSize) / float(hopSize)) + 1
     #     # zeros at end (thus samples can be fully covered by frames)
     #     samples = np.append(samples, np.zeros(frameSize))
@@ -173,7 +215,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #     samplerate, samples = wav.read(audiopath)
     #     s = self.stft(samples, binsize)
         
-    #     sshow, freq = logscale_spec(s, factor=1.0, sr=samplerate)
+    #     sshow, freq = self.logscale_spec(s, factor=1.0, sr=samplerate)
     #     ims = 20.*np.log10(np.abs(sshow)/10e-6) # amplitude to decibel
         
     #     timebins, freqbins = np.shape(ims)
@@ -199,16 +241,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             
     #     plt.clf()
 
-    #     self.graph_spectrogram(Adele_Someone_Like_You_Official_Music_Video_accompaniment.wav)
 
-    # def graph_spectrogram(wav_file):
-    #     sound_info, frame_rate = get_wav_info(wav_file)
-    #     pylab.figure(num=None, figsize=(19, 12))
-    #     pylab.subplot(111)
-    #     pylab.title('spectrogram of %r' % wav_file)
-    #     pylab.specgram(sound_info, Fs=frame_rate)
-    #     pylab.savefig('spectrogram.png')
-    # def get_wav_info(wav_file):
+    # # def graph_spectrogram(self,wav_file):
+    # #     sound_info, frame_rate = get_wav_info(wav_file)
+    # #     plt.figure(num=None, figsize=(19, 12))
+    # #     plt.subplot(111)
+    # #     plt.title('spectrogram of %r' % wav_file)
+    # #     plt.specgram(sound_info, Fs=frame_rate)
+    # #     plt.savefig('spectrogram.png')
+    # def get_wav_info(self,wav_file):
     #     wav = wave.open(wav_file, 'r')
     #     frames = wav.readframes(-1)
     #     sound_info = pylab.fromstring(frames, 'int16')
