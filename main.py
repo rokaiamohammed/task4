@@ -32,24 +32,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.data_dir='./database'
         self.SG=glob(self.data_dir+'/*.wav')
         print(len(self.SG))
+        # file = open("spectrogram.txt", "w")
+        
+        # file.write("Hello World") 
+        # file.write("This is our new text file") 
+        # # file.write(“and this is another line.”) 
+        # # file.write(“Why? Because we can.”) 
+        # file.close() 
         for i in range(len(self.SG)):
             FS, data = wavfile.read(self.SG[i])  # read wav file
-            ls[i]=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot)
-            # ffile=open("spectrogram.txt", "w")
-            #     for spectros in ls[i]:
-            #         for spectro in spectros:
-            #             lline = str(spectro) + " \t"
-            #             ffile.write(lline)
-            #         # one row written 
-            #         ffile.write(' \n') 
-            #     ffile.close() 
-        with open('testfile.txt', 'w+') as f: 
+            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # plot)
+            print(self.ls)
+            ffile=open("spectrogram.txt", "w")
+            for spectros in self.ls[i]:
+                for spectro in spectros:
+                    lline = str(spectro) + " \t"
+                    ffile.write(lline)
+                # one row written 
+                ffile.write(' \n') 
+            ffile.close() 
         
-        file.write("Hello World") 
-        file.write("This is our new text file") 
-        # file.write(“and this is another line.”) 
-        # file.write(“Why? Because we can.”) 
-        file.close() 
 
 
 
