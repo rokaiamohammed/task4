@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(470, 431)
+        MainWindow.resize(470, 440)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -22,6 +22,7 @@ class Ui_MainWindow(object):
         self.Browse1.setObjectName("Browse1")
         self.gridLayout.addWidget(self.Browse1, 0, 1, 1, 1)
         self.mixer = QtWidgets.QSlider(self.centralwidget)
+        self.mixer.setSingleStep(10)
         self.mixer.setOrientation(QtCore.Qt.Horizontal)
         self.mixer.setObjectName("mixer")
         self.gridLayout.addWidget(self.mixer, 1, 1, 1, 2)
@@ -56,6 +57,9 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.Browse2, 0, 2, 1, 1)
         spacerItem1 = QtWidgets.QSpacerItem(89, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem1, 0, 3, 1, 1)
+        self.mix = QtWidgets.QPushButton(self.centralwidget)
+        self.mix.setObjectName("mix")
+        self.gridLayout.addWidget(self.mix, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -70,3 +74,4 @@ class Ui_MainWindow(object):
         self.Browse1.setText(_translate("MainWindow", "Browse1"))
         self.table1.setSortingEnabled(False)
         self.Browse2.setText(_translate("MainWindow", "Browse2"))
+        self.mix.setText(_translate("MainWindow", "mix"))

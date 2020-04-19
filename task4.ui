@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>470</width>
-    <height>431</height>
+    <height>440</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,6 +24,9 @@
     </item>
     <item row="1" column="1" colspan="2">
      <widget class="QSlider" name="mixer">
+      <property name="singleStep">
+       <number>10</number>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -133,6 +136,13 @@
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="mix">
+      <property name="text">
+       <string>mix</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

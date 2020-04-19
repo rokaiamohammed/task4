@@ -9,6 +9,7 @@ from scipy.io import wavfile
 import os
 import wave
 import pylab
+import hashlib
 # from scikits.audiolab import wavread
 import numpy as np
 # from matplotlib import pyplot as plt
@@ -29,14 +30,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.Browse1.clicked.connect(lambda: self.browse(1))
         self.ui.Browse2.clicked.connect(lambda: self.browse(2))
         self.signal=[]
+        self.hash=[]
+        self.ui.mixer.setValue(0)
+        self.ui.mixer.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        # self.ui.mixer.valueChanged.connect(self.valuechange)
+
         self.data_dir='./database'
         self.SG=glob(self.data_dir+'/*.wav')
         print(len(self.SG)) #Number of files in our database
+        self.ui.mix.clicked.connect(self.valuechange)
 
         for i in range(len(self.SG)):
             FS, data = wavfile.read(self.SG[i])  # read wav file
             
             self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram 
+            # print(hashlib(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)))
             #plt.show() #if you want to show the spectogram
             
             # ======= This part may help in getting the first minute ==========
@@ -44,16 +52,27 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ls=self.ls[:60]
 
             print(self.ls)
-            
+            # file_hash = hashlib.sha256()
+
             #Saving the spectogram data into a file
-            ffile=open("spectrogram"+str(i)+'.txt', "w")  
-            for spectros in self.ls[0]:
-                for spectro in spectros:
-                    lline = str(spectro) + " \t"
-                    ffile.write(lline)
-                # one row written 
-                ffile.write(' \n') 
-            ffile.close() 
+            # ffile=open("spectrogram"+str(i)+'.txt', "w")  
+            # for spectros in self.ls[0]:
+            #     for spectro in spectros:
+            #         lline = str(spectro) + " \t"
+            #         ffile.write(lline)
+            #     # one row written 
+            #     ffile.write(' \n') 
+            # ffile.close() 
+            # BLOCKSIZE = 65536
+            # hasher = hashlib.sha1()
+            # with open("spectrogram"+str(i)+'.txt', 'rb') as afile:
+            #     buf = afile.read(BLOCKSIZE)
+            #     while len(buf) > 0:
+            #         hasher.update(buf)
+            #         buf = afile.read(BLOCKSIZE)
+            # print(hasher.hexdigest())
+            # self.hash.append(hasher.hexdigest())
+            # print(len(self.hash))
         
 
 
@@ -64,14 +83,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
         if fileName:
             FS, data = wavfile.read(fileName)  # read wav file
-            plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
-            plt.show()
+            # plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
+            # plt.show()
             if n==1:
-                self.file1=data[:,0]
+                self.file1=plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)
             elif n==2:
-                self.file2=data[:,0]
+                self.file2=plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)
 
-  
+    def valuechange(self):
+       self.MixerValue=self.ui.mixer.value()/100
+    #    print(self.file1)
+    #    print(self.file2)
+    #    self.file1=self.file1*self.MixerValue
+    #    self.file2=self.file2*(1-self.MixerValue)
+    #    print(self.file1)
+    #    print(self.file2)
+
 
     # def browse(self,n):
     #     options = QtWidgets.QFileDialog.Options()
