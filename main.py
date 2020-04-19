@@ -42,8 +42,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             FS, data = wavfile.read(self.SG[i])  # read wav file
             self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
             #plt.show() #if you want to show the spectogram
-            # ======= This part may help in getting the first minute ==========
             
+            # ======= This part may help in getting the first minute ==========          
             self.ls=self.ls[:60]
 
             ax = plt.axes()
