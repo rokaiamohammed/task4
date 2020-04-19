@@ -10,17 +10,13 @@ import os
 import wave
 import pylab
 import hashlib
-# from scikits.audiolab import wavread
 import numpy as np
-# from matplotlib import pyplot as plt
-# import scipy.io.wavfile as wav
 from numpy.lib import stride_tricks
-import matplotlib.pyplot as plot
-# from scipy.fft import fftshift
 import pandas as pd
 from glob import glob
-
 from scipy.io import wavfile
+from PIL import Image
+import imagehash
 
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -38,43 +34,30 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.data_dir='./database'
         self.SG=glob(self.data_dir+'/*.wav')
         print(len(self.SG)) #Number of files in our database
-        self.ui.mix.clicked.connect(self.valuechange)
 
+        self.arrayofHash=[]
+        self.ui.mix.clicked.connect(self.valuechange)
+        
         for i in range(len(self.SG)):
             FS, data = wavfile.read(self.SG[i])  # read wav file
-            
-            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram 
-            # print(hashlib(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)))
+            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
             #plt.show() #if you want to show the spectogram
-            
             # ======= This part may help in getting the first minute ==========
             
             self.ls=self.ls[:60]
 
-            print(self.ls)
-            # file_hash = hashlib.sha256()
+            ax = plt.axes()
+            ax.set_axis_off()
+            plt.savefig('sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+            file='sp_xyz'+str(i)+'.png'
+            img = Image.open(file)
+            hashedVersion = imagehash.phash(img)
+            self.arrayofHash.append(str(hashedVersion))
 
-            #Saving the spectogram data into a file
-            # ffile=open("spectrogram"+str(i)+'.txt', "w")  
-            # for spectros in self.ls[0]:
-            #     for spectro in spectros:
-            #         lline = str(spectro) + " \t"
-            #         ffile.write(lline)
-            #     # one row written 
-            #     ffile.write(' \n') 
-            # ffile.close() 
-            # BLOCKSIZE = 65536
-            # hasher = hashlib.sha1()
-            # with open("spectrogram"+str(i)+'.txt', 'rb') as afile:
-            #     buf = afile.read(BLOCKSIZE)
-            #     while len(buf) > 0:
-            #         hasher.update(buf)
-            #         buf = afile.read(BLOCKSIZE)
-            # print(hasher.hexdigest())
-            # self.hash.append(hasher.hexdigest())
-            # print(len(self.hash))
-        
+            # print(self.ls)
 
+
+        print(self.arrayofHash)
 
 
     def browse(self,n):
@@ -102,47 +85,47 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     # def browse(self,n):
     #     options = QtWidgets.QFileDialog.Options()
-    #     options |= QtWidgets.QFileDialog.DontUseNativeDialog    
+    #     options |= QtWidgets.QFileDialog.DontUseNativeDialog
     #     filePath = QtWidgets.QFileDialog.getOpenFileNames(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
     #     temp=filePath
     #     for vs in temp[0]:
     #         self.ext = os.path.splitext(vs)[-1].lower()
     #         pinky=filePath[0]
     #         self.samplerate, self.signal=wavfile.read(pinky[0])
-    #         self.secs=np.arange(self.signal.shape[0])/float(self.samplerate)    
+    #         self.secs=np.arange(self.signal.shape[0])/float(self.samplerate)
     #     if n==1:
     #         self.file1=self.signal
     #     elif n==2:
     #         self.file2=self.signal
-        
+
         # fig,ax=plt.subplots()
         # ax.plot(self.secs,self.file1)
         # ax.set(xlabel='Time', ylabel='Sound Amplitude')
-        # plt.show        
+        # plt.show
 
-        
+
         # f, t, Sxx = signal.spectrogram(self.file1[1], self.samplerate)
         # plt.pcolormesh(t, f, Sxx)
         # plt.ylabel('Frequency [Hz]')
         # plt.xlabel('Time [sec]')
-        # plt.show()    
-        
-        
-        
-        
-            
+        # plt.show()
+
+
+
+
+
 
         # Plot the spectrogram
         # plot.subplot(212)
         # powerSpectrum, freqenciesFound, time, imageAxis = plot.specgram(self.signal[1], Fs=self.samplerate)
         # plot.xlabel('Time')
         # plot.ylabel('Frequency')
-        # plot.show()   
+        # plot.show()
 
 
-        
 
-     
+
+
 
         # self.total_ts_sec = self.x
         # print("The total time series length = {} sec (N points = {}) ".format(self.total_ts_sec, len(self.signal)))
@@ -158,21 +141,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # def get_xn(Xs,n):
         #     '''
-        #     calculate the Fourier coefficient X_n of 
+        #     calculate the Fourier coefficient X_n of
         #     Discrete Fourier Transform (DFT)
         #     '''
         #     L  = len(Xs)
         #     ks = np.arange(0,L,1)
         #     xn = np.sum(Xs*np.exp((1j*2*np.pi*ks*n)/L))/L
         #     return(xn)
-        
+
 
         # def get_xns(ts):
 
         #     '''
         #     Compute Fourier coefficients only up to the Nyquest Limit Xn, n=1,...,L/2
-        #     and multiply the absolute value of the Fourier coefficients by 2, 
-        #     to account for the symetry of the Fourier coefficients above the Nyquest Limit. 
+        #     and multiply the absolute value of the Fourier coefficients by 2,
+        #     to account for the symetry of the Fourier coefficients above the Nyquest Limit.
         #     '''
         #     mag = []
         #     L = len(self.signal)
@@ -190,10 +173,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # plt.title("Two-sided frequency plot")
         # plt.ylabel("|Fourier Coefficient|")
         # plt.show()
-         
-         
-         
-            
+
+
+
+
     #     self.plotstft("Adele_Someone_Like_You_Official_Music_Video_accompaniment.wav")
 
 
@@ -203,34 +186,34 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     # def stft(self,sig, frameSize, overlapFac=0.5, window=np.hanning):
     #     win = window(frameSize)
     #     hopSize = int(frameSize - np.floor(overlapFac * frameSize))
-        
+
     #     # zeros at beginning (thus center of 1st window should be for sample nr. 0)
-    #     samples = np.append(np.zeros(np.floor(frameSize/2.0)), sig)        
+    #     samples = np.append(np.zeros(np.floor(frameSize/2.0)), sig)
     #     cols = np.ceil( (len(samples) - frameSize) / float(hopSize)) + 1
     #     # zeros at end (thus samples can be fully covered by frames)
     #     samples = np.append(samples, np.zeros(frameSize))
-        
+
     #     frames = stride_tricks.as_strided(samples, shape=(cols, frameSize), strides=(samples.strides[0]*hopSize, samples.strides[0])).copy()
     #     frames *= win
-        
-    #     return np.fft.rfft(frames)    
-        
-    # """ scale frequency axis logarithmically """    
+
+    #     return np.fft.rfft(frames)
+
+    # """ scale frequency axis logarithmically """
     # def logscale_spec(self,spec, sr=44100, factor=20.):
     #     timebins, freqbins = np.shape(spec)
 
     #     scale = np.linspace(0, 1, freqbins) ** factor
     #     scale *= (freqbins-1)/max(scale)
     #     scale = np.unique(np.round(scale))
-        
+
     #     # create spectrogram with new freq bins
     #     newspec = np.complex128(np.zeros([timebins, len(scale)]))
     #     for i in range(0, len(scale)):
     #         if i == len(scale)-1:
     #             newspec[:,i] = np.sum(spec[:,scale[i]:], axis=1)
-    #         else:        
+    #         else:
     #             newspec[:,i] = np.sum(spec[:,scale[i]:scale[i+1]], axis=1)
-        
+
     #     # list center freq of bins
     #     allfreqs = np.abs(np.fft.fftfreq(freqbins*2, 1./sr)[:freqbins+1])
     #     freqs = []
@@ -239,19 +222,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #             freqs += [np.mean(allfreqs[scale[i]:])]
     #         else:
     #             freqs += [np.mean(allfreqs[scale[i]:scale[i+1]])]
-        
+
     #     return newspec, freqs
 
     # """ plot spectrogram"""
     # def plotstft(self,audiopath, binsize=2**10, plotpath=None, colormap="jet"):
     #     samplerate, samples = wav.read(audiopath)
     #     s = self.stft(samples, binsize)
-        
+
     #     sshow, freq = self.logscale_spec(s, factor=1.0, sr=samplerate)
     #     ims = 20.*np.log10(np.abs(sshow)/10e-6) # amplitude to decibel
-        
+
     #     timebins, freqbins = np.shape(ims)
-        
+
     #     plt.figure(figsize=(15, 7.5))
     #     plt.imshow(np.transpose(ims), origin="lower", aspect="auto", cmap=colormap, interpolation="none")
     #     plt.colorbar()
@@ -265,12 +248,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #     plt.xticks(xlocs, ["%.02f" % l for l in ((xlocs*len(samples)/timebins)+(0.5*binsize))/samplerate])
     #     ylocs = np.int16(np.round(np.linspace(0, freqbins-1, 10)))
     #     plt.yticks(ylocs, ["%.02f" % freq[i] for i in ylocs])
-        
+
     #     if plotpath:
     #         plt.savefig(plotpath, bbox_inches="tight")
     #     else:
     #         plt.show()
-            
+
     #     plt.clf()
 
 
