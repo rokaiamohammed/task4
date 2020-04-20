@@ -34,31 +34,32 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.SG=glob(self.data_dir+'/*.wav')
         print(len(self.SG)) #Number of files in our database
         self.arrayofHash=[]
-        for i in range(len(self.SG)):
-            FS, data = wavfile.read(self.SG[i])  # read wav file
-            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
-            #plt.show() #if you want to show the spectogram
+        # for i in range(len(self.SG)):
+        #     FS, data = wavfile.read(self.SG[i])  # read wav file
+        #     self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
+        #     #plt.show() #if you want to show the spectogram
             
-            # ======= This part may help in getting the first minute ==========          
-            self.ls=self.ls[:60]
+        #     # ======= This part may help in getting the first minute ==========          
+        #     self.ls=self.ls[:60]
 
-            ax = plt.axes()
-            ax.set_axis_off()
-            plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
-            file='./SG_DataBase/sp_xyz'+str(i)+'.png'
+        #     ax = plt.axes()
+        #     ax.set_axis_off()
+        #     plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+           
+
+        #     # print(self.ls)
+
+
+      
+
+        self.data_dir_SG='./SG_DataBase'
+        self.SG_database=glob(self.data_dir_SG+'/*.png')
+        for i in range(len(self.SG_database)): 
+            file=self.SG_database[i]
             img = Image.open(file)
             hashedVersion = imagehash.phash(img)
             self.arrayofHash.append(str(hashedVersion))
-
-            # print(self.ls)
-
-
         print(self.arrayofHash)
-
-        # self.data_dir_SG='./SG_DataBase'
-        # self.SG_database=glob(self.data_dir_SG+'/*.png')
-        # for i in range(len(self.SG_database)):
-
 
     def browse(self,n):
         options = QtWidgets.QFileDialog.Options()
