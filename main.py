@@ -19,6 +19,7 @@ from PIL import Image
 import imagehash
 from os.path import relpath
 import difflib
+from scipy.io.wavfile import write
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -86,9 +87,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.fs1=FS
                 song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
                 self.index1 = self.songs.index(song) 
-                arr=np.array(self.data1,dtype=np.float64)
-                self.data1=arr.astype(np.int16)
-                # print (index)
+                # arr=np.array(self.data1,dtype=np.float64)
+                # self.data1=arr.astype(np.int16)
+                # print (data)
                 # print(len(self.data))
             
             elif n==2:
@@ -97,8 +98,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.fs2=FS 
                 song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
                 self.index2 = self.songs.index(song) 
-                arr=np.array(self.data2,dtype=np.float64)
-                self.data2=arr.astype(np.int16)
+                # arr=np.array(self.data2,dtype=np.float64)
+                # self.data2=arr.astype(np.int16)
                 # print (index)
                 # data.close()
                 # print(len(self.data))
@@ -117,12 +118,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.data1[:temp.shape[0],:] = temp
         print(self.data1.shape[0])
         print(self.data2.shape[0])
+        
 
 
         output=self.data1*self.MixerValue+self.data2*(1-self.MixerValue)
         data=np.array(output,dtype=np.float64)
+        
         output=data.astype(np.int16)
-        SG_Output=plt.specgram(output[:,0], Fs=self.fs2, NFFT=128, noverlap=0)
+     
+
+        print(output)
+        write("output.wav", 44100, output)
+
+        SG_Output=plt.specgram(output[:,0], Fs=fs, NFFT=128, noverlap=0)
         ax = plt.axes()
         ax.set_axis_off()
         plt.savefig('output.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
@@ -131,7 +139,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         hashedVersion = imagehash.phash(img)
         print(hashedVersion)
         hash1=self.arrayofHash[self.index1]
-        # outfile = "sounds.wav"
+        
         hash2=self.arrayofHash[self.index2]
         print(hash1)
         print(hash2)
@@ -148,11 +156,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # for i in range(len(self.arrayofHash)):
         #     res = len(set(hashedVersion) & set(self.arrayofHash[i])) / float(len(set(hashedVersion) | set(self.arrayofHash[i]))) * 100
         #     print(res)
-       
+
+
+        # outfile = "sounds.wav"
         # out = wave.open(outfile, 'wb')
         # out.setparams(output[0][0])
         # for params,frames in output:
-        #     out.writeframes(frames)
+        #     out.writeframes(fs)
         # out.close()
         # FS, data = wavfile.read("sounds.wav")  # read wav file
         # self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
