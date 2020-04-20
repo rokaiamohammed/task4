@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets,QtGui
 from task4 import Ui_MainWindow
 import sys
 import matplotlib.pyplot as plt
@@ -17,7 +17,9 @@ from glob import glob
 from scipy.io import wavfile
 from PIL import Image
 import imagehash
-
+from os.path import relpath
+import difflib
+from scipy.io.wavfile import write
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -25,63 +27,168 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.ui.Browse1.clicked.connect(lambda: self.browse(1))
         self.ui.Browse2.clicked.connect(lambda: self.browse(2))
-        self.signal=[]
-        self.hash=[]
+        self.signal=[] 
+        self.data= []
+        self.songs=[]
+        self.similarity=[]
         self.ui.mixer.setValue(0)
         self.ui.mixer.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        # self.ui.mixer.valueChanged.connect(self.valuechange)
-
-        self.data_dir='./database'
-        self.SG=glob(self.data_dir+'/*.wav')
-        print(len(self.SG)) #Number of files in our database
-
-        self.arrayofHash=[]
         self.ui.mix.clicked.connect(self.valuechange)
-        
+        # self.ui.table1.setItem(1, 1,QtWidgets.QTableWidgetItem("self.similarity[i]"))
+        self.data_dir='./database/'
+        self.SG=glob(self.data_dir+'*.wav')
         for i in range(len(self.SG)):
-            FS, data = wavfile.read(self.SG[i])  # read wav file
-            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
-            #plt.show() #if you want to show the spectogram
-            
-            # ======= This part may help in getting the first minute ==========          
-            self.ls=self.ls[:60]
+            self.songs.append(relpath(self.SG[i], './database\\'))
 
-            ax = plt.axes()
-            ax.set_axis_off()
-            plt.savefig('sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
-            file='sp_xyz'+str(i)+'.png'
+        # print(self.SG) #Number of files in our database
+        self.arrayofHash=[]
+        # for i in range(len(self.SG)):
+        #     FS, data = wavfile.read(self.SG[i])  # read wav file
+        #     self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
+        #     #plt.show() #if you want to show the spectogram
+            
+        #     # ======= This part may help in getting the first minute ==========          
+        #     self.ls=self.ls[:60]
+
+        #     ax = plt.axes()
+        #     ax.set_axis_off()
+        #     plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+           
+
+        #     # print(self.ls)
+
+
+      
+
+        self.data_dir_SG='./SG_DataBase'
+        self.SG_database=glob(self.data_dir_SG+'/*.png')
+        for i in range(len(self.SG_database)): 
+            file=self.SG_database[i]
             img = Image.open(file)
             hashedVersion = imagehash.phash(img)
             self.arrayofHash.append(str(hashedVersion))
-
-            # print(self.ls)
-
-
-        print(self.arrayofHash)
-
+        # print(self.arrayofHash)
 
     def browse(self,n):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Please Choose a .wav file", "","Wav Files (*.wav)", options=options)
         if fileName:
+           
+            # data=wave.open(fileName,'rb')
+            # print(fileName)
             FS, data = wavfile.read(fileName)  # read wav file
             # plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
-            # plt.show()
+            # plt.show() 
+            
             if n==1:
-                self.file1=plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)
+                self.data1=data
+                # self.data.append( [data.getparams(),data.readframes(data.getnframes())] )
+                self.fs1=FS
+                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                self.index1 = self.songs.index(song) 
+                # arr=np.array(self.data1,dtype=np.float64)
+                # self.data1=arr.astype(np.int16)
+                # print (data)
+                # print(len(self.data))
+            
             elif n==2:
-                self.file2=plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)
+                self.data2=data
+                # self.data.append( [data.getparams(), data.readframes(data.getnframes())] )
+                self.fs2=FS 
+                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                self.index2 = self.songs.index(song) 
+                # arr=np.array(self.data2,dtype=np.float64)
+                # self.data2=arr.astype(np.int16)
+                # print (index)
+                # data.close()
+                # print(len(self.data))
 
     def valuechange(self):
-       self.MixerValue=self.ui.mixer.value()/100
-    #    print(self.file1)
-    #    print(self.file2)
-    #    self.file1=self.file1*self.MixerValue
-    #    self.file2=self.file2*(1-self.MixerValue)
-    #    print(self.file1)
-    #    print(self.file2)
+        self.MixerValue=self.ui.mixer.value()/100
+        fill_value = 0
 
+        if self.data1.shape[0]>self.data2.shape[0]:
+            temp = self.data2
+            self.data2 = np.ones(self.data1.shape)*fill_value
+            self.data2[:temp.shape[0],:] = temp
+        elif self.data1.shape[0]<self.data2.shape[0]:
+            temp = self.data1
+            self.data1 = np.ones(self.data2.shape)*fill_value
+            self.data1[:temp.shape[0],:] = temp
+        print(self.data1.shape[0])
+        print(self.data2.shape[0])
+        
+
+
+        output=self.data1*self.MixerValue+self.data2*(1-self.MixerValue)
+        data=np.array(output,dtype=np.float64)
+        
+        output=data.astype(np.int16)
+     
+
+        print(output)
+        write("output.wav", 44100, output)
+
+        SG_Output=plt.specgram(output[:,0], Fs=fs, NFFT=128, noverlap=0)
+        ax = plt.axes()
+        ax.set_axis_off()
+        plt.savefig('output.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+        file='output.png'
+        img = Image.open(file)
+        hashedVersion = imagehash.phash(img)
+        print(hashedVersion)
+        hash1=self.arrayofHash[self.index1]
+        
+        hash2=self.arrayofHash[self.index2]
+        print(hash1)
+        print(hash2)
+
+        for i in range(len(self.arrayofHash)):
+            sim=difflib.SequenceMatcher(None,str(hashedVersion) ,str(self.arrayofHash[i])).ratio()
+            self.similarity.append(str(sim)+" "+self.songs[i])
+            # self.similarity.append(self.songs[i])
+        self.similarity.sort(reverse = True) 
+        for i in range (6):
+            self.ui.table1.setItem(i, 0,QtWidgets.QTableWidgetItem(str(self.similarity[i])))
+        print(self.similarity)
+        # print(hash1+hash2)
+        # for i in range(len(self.arrayofHash)):
+        #     res = len(set(hashedVersion) & set(self.arrayofHash[i])) / float(len(set(hashedVersion) | set(self.arrayofHash[i]))) * 100
+        #     print(res)
+
+
+        # outfile = "sounds.wav"
+        # out = wave.open(outfile, 'wb')
+        # out.setparams(output[0][0])
+        # for params,frames in output:
+        #     out.writeframes(fs)
+        # out.close()
+        # FS, data = wavfile.read("sounds.wav")  # read wav file
+        # self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
+        # self.ls=self.ls[:60]
+        # ax = plt.axes()
+        # ax.set_axis_off()
+        # plt.savefig('mixing.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+        # file='mixing.png'
+        # img = Image.open(file)
+        # hashedVersion = imagehash.phash(img)
+        # print(str(hashedVersion))
+
+
+        # self.MixerValue=self.ui.mixer.value()/100
+        # print(self.data1)
+        # print(self.data2)
+        # print(self.fs1)
+        # print(self.fs2)
+        # self.data1=self.data1*self.MixerValue
+        # self.data2=self.data2*(1-self.MixerValue)
+        # self.fs1=self.fs1*self.MixerValue
+        # self.fs2=self.fs2*(1-self.MixerValue)
+        # print(self.data1)
+        # print(self.data2)
+        # print(self.fs1)
+        # print(self.fs2)
 
     # def browse(self,n):
     #     options = QtWidgets.QFileDialog.Options()
