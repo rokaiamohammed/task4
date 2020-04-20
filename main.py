@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets,QtGui
 from task4 import Ui_MainWindow
 import sys
 import matplotlib.pyplot as plt
@@ -17,6 +17,8 @@ from glob import glob
 from scipy.io import wavfile
 from PIL import Image
 import imagehash
+from os.path import relpath
+import difflib
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -26,13 +28,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.Browse2.clicked.connect(lambda: self.browse(2))
         self.signal=[] 
         self.data= []
+        self.songs=[]
+        self.similarity=[]
         self.ui.mixer.setValue(0)
         self.ui.mixer.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.ui.mix.clicked.connect(self.valuechange)
+        # self.ui.table1.setItem(1, 1,QtWidgets.QTableWidgetItem("self.similarity[i]"))
+        self.data_dir='./database/'
+        self.SG=glob(self.data_dir+'*.wav')
+        for i in range(len(self.SG)):
+            self.songs.append(relpath(self.SG[i], './database\\'))
 
-        self.data_dir='./database'
-        self.SG=glob(self.data_dir+'/*.wav')
-        print(len(self.SG)) #Number of files in our database
+        # print(self.SG) #Number of files in our database
         self.arrayofHash=[]
         # for i in range(len(self.SG)):
         #     FS, data = wavfile.read(self.SG[i])  # read wav file
@@ -59,7 +66,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             img = Image.open(file)
             hashedVersion = imagehash.phash(img)
             self.arrayofHash.append(str(hashedVersion))
-        print(self.arrayofHash)
+        # print(self.arrayofHash)
 
     def browse(self,n):
         options = QtWidgets.QFileDialog.Options()
@@ -68,6 +75,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if fileName:
            
             # data=wave.open(fileName,'rb')
+            # print(fileName)
             FS, data = wavfile.read(fileName)  # read wav file
             # plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
             # plt.show() 
@@ -76,19 +84,42 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.data1=data
                 # self.data.append( [data.getparams(),data.readframes(data.getnframes())] )
                 self.fs1=FS
+                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                self.index1 = self.songs.index(song) 
+                arr=np.array(self.data1,dtype=np.float64)
+                self.data1=arr.astype(np.int16)
+                # print (index)
                 # print(len(self.data))
             
             elif n==2:
                 self.data2=data
                 # self.data.append( [data.getparams(), data.readframes(data.getnframes())] )
                 self.fs2=FS 
+                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                self.index2 = self.songs.index(song) 
+                arr=np.array(self.data2,dtype=np.float64)
+                self.data2=arr.astype(np.int16)
+                # print (index)
                 # data.close()
                 # print(len(self.data))
 
     def valuechange(self):
         self.MixerValue=self.ui.mixer.value()/100
+        fill_value = 0
 
-        output=self.data1*self.MixerValue+self.fs2*(1-self.MixerValue)
+        if self.data1.shape[0]>self.data2.shape[0]:
+            temp = self.data2
+            self.data2 = np.ones(self.data1.shape)*fill_value
+            self.data2[:temp.shape[0],:] = temp
+        elif self.data1.shape[0]<self.data2.shape[0]:
+            temp = self.data1
+            self.data1 = np.ones(self.data2.shape)*fill_value
+            self.data1[:temp.shape[0],:] = temp
+        print(self.data1.shape[0])
+        print(self.data2.shape[0])
+
+
+        output=self.data1*self.MixerValue+self.data2*(1-self.MixerValue)
         data=np.array(output,dtype=np.float64)
         output=data.astype(np.int16)
         SG_Output=plt.specgram(output[:,0], Fs=self.fs2, NFFT=128, noverlap=0)
@@ -99,8 +130,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         img = Image.open(file)
         hashedVersion = imagehash.phash(img)
         print(hashedVersion)
+        hash1=self.arrayofHash[self.index1]
         # outfile = "sounds.wav"
-        
+        hash2=self.arrayofHash[self.index2]
+        print(hash1)
+        print(hash2)
+
+        for i in range(len(self.arrayofHash)):
+            sim=difflib.SequenceMatcher(None,str(hashedVersion) ,str(self.arrayofHash[i])).ratio()
+            self.similarity.append(str(sim)+" "+self.songs[i])
+            # self.similarity.append(self.songs[i])
+        self.similarity.sort(reverse = True) 
+        for i in range (6):
+            self.ui.table1.setItem(i, 0,QtWidgets.QTableWidgetItem(str(self.similarity[i])))
+        print(self.similarity)
+        # print(hash1+hash2)
+        # for i in range(len(self.arrayofHash)):
+        #     res = len(set(hashedVersion) & set(self.arrayofHash[i])) / float(len(set(hashedVersion) | set(self.arrayofHash[i]))) * 100
+        #     print(res)
        
         # out = wave.open(outfile, 'wb')
         # out.setparams(output[0][0])
