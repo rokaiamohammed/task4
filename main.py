@@ -42,18 +42,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # print(self.SG) #Number of files in our database
         self.arrayofHash=[]
-        # for i in range(len(self.SG)):
-        #     FS, data = wavfile.read(self.SG[i])  # read wav file
-        #     data=data[0:60*FS]
-        #     self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
-        #     #plt.show() #if you want to show the spectogram
+        for i in range(len(self.SG)):
+            FS, data = wavfile.read(self.SG[i])  # read wav file
+            data=data[0:60*FS]
+            self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
+            #plt.show() #if you want to show the spectogram
             
-        #     # ======= This part may help in getting the first minute ==========          
-        #     self.ls=self.ls[:60]
+            # ======= This part may help in getting the first minute ==========          
+            self.ls=self.ls[:60]
 
-        #     ax = plt.axes()
-        #     ax.set_axis_off()
-        #     plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
+            ax = plt.axes()
+            ax.set_axis_off()
+            plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
            
 
         #     # print(self.ls)
