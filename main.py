@@ -44,6 +44,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.arrayofHash=[]
         # for i in range(len(self.SG)):
         #     FS, data = wavfile.read(self.SG[i])  # read wav file
+        #     data=data[0:60*FS]
         #     self.ls=(plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0))  # The spectogram
         #     #plt.show() #if you want to show the spectogram
             
@@ -66,7 +67,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             file=self.SG_database[i]
             img = Image.open(file)
             hashedVersion = imagehash.phash(img)
-            self.arrayofHash.append(str(hashedVersion))
+            self.arrayofHash.append(hashedVersion)
         # print(self.arrayofHash)
 
     def browse(self,n):
@@ -78,6 +79,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             # data=wave.open(fileName,'rb')
             # print(fileName)
             FS, data = wavfile.read(fileName)  # read wav file
+            data=data[0:60*FS]
             # plt.specgram(data[:,0], Fs=FS, NFFT=128, noverlap=0)  # plot
             # plt.show() 
             
@@ -85,8 +87,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.data1=data
                 # self.data.append( [data.getparams(),data.readframes(data.getnframes())] )
                 self.fs1=FS
-                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
-                self.index1 = self.songs.index(song) 
+                
+                # song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                # self.index1 = self.songs.index(song) 
                 # arr=np.array(self.data1,dtype=np.float64)
                 # self.data1=arr.astype(np.int16)
                 # print (data)
@@ -96,8 +99,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.data2=data
                 # self.data.append( [data.getparams(), data.readframes(data.getnframes())] )
                 self.fs2=FS 
-                song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
-                self.index2 = self.songs.index(song) 
+                # song=relpath(fileName, 'C:/Users/Lenovo/Desktop/task4/database')
+                # self.index2 = self.songs.index(song) 
                 # arr=np.array(self.data2,dtype=np.float64)
                 # self.data2=arr.astype(np.int16)
                 # print (index)
@@ -106,18 +109,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def valuechange(self):
         self.MixerValue=self.ui.mixer.value()/100
-        fill_value = 0
+        # fill_value = 0
 
-        if self.data1.shape[0]>self.data2.shape[0]:
-            temp = self.data2
-            self.data2 = np.ones(self.data1.shape)*fill_value
-            self.data2[:temp.shape[0],:] = temp
-        elif self.data1.shape[0]<self.data2.shape[0]:
-            temp = self.data1
-            self.data1 = np.ones(self.data2.shape)*fill_value
-            self.data1[:temp.shape[0],:] = temp
-        print(self.data1.shape[0])
-        print(self.data2.shape[0])
+        # if self.data1.shape[0]>self.data2.shape[0]:
+        #     temp = self.data2
+        #     self.data2 = np.ones(self.data1.shape)*fill_value
+        #     self.data2[:temp.shape[0],:] = temp
+        # elif self.data1.shape[0]<self.data2.shape[0]:
+        #     temp = self.data1
+        #     self.data1 = np.ones(self.data2.shape)*fill_value
+        #     self.data1[:temp.shape[0],:] = temp
+        # print(self.data1.shape[0])
+        # print(self.data2.shape[0])
         
 
 
@@ -130,22 +133,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         print(output)
         write("output.wav", 44100, output)
 
-        SG_Output=plt.specgram(output[:,0], Fs=fs, NFFT=128, noverlap=0)
+        SG_Output=plt.specgram(output[:,0], Fs=self.fs1, NFFT=128, noverlap=0)
         ax = plt.axes()
         ax.set_axis_off()
         plt.savefig('output.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
         file='output.png'
         img = Image.open(file)
-        hashedVersion = imagehash.phash(img)
-        print(hashedVersion)
-        hash1=self.arrayofHash[self.index1]
+        self.hashedVersion = imagehash.phash(img)
+        print(self.hashedVersion)
+        # hash1=self.arrayofHash[self.index1]
         
-        hash2=self.arrayofHash[self.index2]
-        print(hash1)
-        print(hash2)
+        # hash2=self.arrayofHash[self.index2]
+        # print(hash1)
+        # print(hash2)
 
         for i in range(len(self.arrayofHash)):
-            sim=difflib.SequenceMatcher(None,str(hashedVersion) ,str(self.arrayofHash[i])).ratio()
+            diff=self.hashedVersion-self.arrayofHash[i]    
+            sim=diff/64
+            sim=1-sim
+
+            # sim=difflib.SequenceMatcher(None,str(hashedVersion) ,str(self.arrayofHash[i])).ratio()
             self.similarity.append(str(sim)+" "+self.songs[i])
             # self.similarity.append(self.songs[i])
         self.similarity.sort(reverse = True) 
