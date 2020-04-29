@@ -75,13 +75,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
             FS, data = wavfile.read(fileName)  # read wav file
             data=data[0:60*FS]
-           
+            print(data.ndim)
             if n==1:
-                self.data1=data
+                if data.ndim==2:
+                    self.data1=data[:,0]
+                else: 
+                    self.data1=data
                 self.fs1=FS
                 
             elif n==2:
-                self.data2=data
+                if data.ndim==2:
+                    self.data2=data[:,0]
+                else:
+                    self.data2=data
                 self.fs2=FS 
 
     def valuechange(self):
@@ -95,7 +101,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         print(output)
         write("output.wav", 44100, output)
-        data, freqs, time, im=plt.specgram(output[:,0], Fs=self.fs1, NFFT=128, noverlap=0)
+        data, freqs, time, im=plt.specgram(output, Fs=self.fs1, NFFT=128, noverlap=0)
         print("data",data)#     Columns are the periodograms of successive segments.
 
         print("freqs",freqs)#     The frequencies corresponding to the rows in spectrum.
