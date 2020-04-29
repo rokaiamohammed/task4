@@ -20,6 +20,9 @@ import imagehash
 from os.path import relpath
 import difflib
 from scipy.io.wavfile import write
+from matplotlib.mlab import specgram
+from skimage.feature import peak_local_max
+
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
@@ -55,7 +58,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
            
 
         #     # print(self.ls)
+        FS, data = wavfile.read(self.SG[1])  # read wav file
+        self.ls,self.freq, self.time =specgram(data[:,0], Fs=FS,  NFFT=4096, noverlap=2048)  # The spectogram
+        self.ls[self.ls == 0] = 1e-6
 
+        Z1, freqs1 = self.cutSpecgram(self.ls, self.freq)
+        coordinates = peak_local_max(Z1, min_distance=20, threshold_abs=20)
+        self.showPeaks(Z1, freqs1, self.time, coordinates)
+        # print(self.freq)
+        # print(self.time)
+        # print(coordinates)
+        s=self.spectralCentroid(self.ls)
+        print(s)
 
       
 
@@ -89,6 +103,47 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 else:
                     self.data2=data
                 self.fs2=FS 
+    
+    
+    def spectralCentroid(self,arr,samplerate=44100 ):
+        # magnitudes = np.abs(np.fft.rfft(arr))
+        # length = len(arr)
+        # freqs = np.abs(np.fft.fftfreq(length, 1.0/samplerate)[:length//2+1])
+        # magnitudes = magnitudes[:length//2+1]
+        # return np.sum(magnitudes*freqs) / np.sum(magnitudes) 
+        h = arr.shape[0]
+        w = arr.shape[1]
+        x = np.arange(w)
+        y = np.arange(h)
+        vx = arr.sum(axis=0)
+        vx =vx / vx.sum()
+        vy = arr.sum(axis=1)
+        vy = vy / vy.sum()    
+        return np.dot(vx,x),np.dot(vy,y)
+
+    def cutSpecgram(self, spec, freqs):
+        min_freq=0
+        max_freq=10000
+        spec_cut = spec[(freqs >= min_freq) & (freqs <= max_freq)]
+        freqs_cut = freqs[(freqs >= min_freq) & (freqs <= max_freq)]
+        Z_cut = 10.0 * np.log10(spec_cut)
+        Z_cut = np.flipud(Z_cut)
+        return Z_cut, freqs_cut
+
+    def showPeaks(self, Z, freqs, t, coord):
+        fig = plt.figure(figsize=(10, 8), facecolor='white')
+        plt.imshow(Z, cmap='viridis')
+        plt.scatter(coord[:, 1], coord[:, 0])
+        ax = plt.gca()
+        plt.xlabel('Time bin')
+        plt.ylabel('Frequency')
+        plt.title('Feature: Peaks', fontsize=18)
+        plt.axis('auto')
+        ax.set_xlim([0, len(t)])
+        ax.set_ylim([len(freqs), 0])
+        ax.xaxis.set_ticklabels([])
+        ax.yaxis.set_ticklabels([])
+        plt.show()
 
     def valuechange(self):
         self.MixerValue=self.ui.mixer.value()/100
