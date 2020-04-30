@@ -37,7 +37,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.similarity=[]
         self.similarityFeature1=[]
         self.avrage=[]
-        self.length=[]
+        self.lengthFinal=[]
         self.sumHashAndFeature=[]
         self.ui.mixer.setValue(0)
         self.ui.mixer.setTickPosition(QtWidgets.QSlider.TicksBelow)
@@ -48,9 +48,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.songs.append(relpath(self.SG[i], './database\\'))
         self.spectral_Centroid=[]
         
+        # for i in range(len(self.SG)):
+        #     self.SG_Maker(self.SG[i],i) #run only in first time then comment
         for i in range(len(self.SG)):
-            self.SG_Maker(self.SG[i],i) #run only in first time then comment
-            self.Feature1(self.SG[i],i) #run only in first time then comment
+            # self.Feature1(self.SG[i],i) #run only in first time then comment
             self.Feature2(self.SG[i],i)
         self.arrayofHash=self.Hash('./SG_DataBase/')
         self.arrayofHashFeature=self.Hash('./SG_DataBaseFeature/')
@@ -69,9 +70,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def SG_Maker(self,file,i):
             FS, data = wavfile.read(file)  # read wav file
             data=data[0:60*FS]
-            if data.ndim==2:
+            if data.ndim==2:   #if the song is stereo 
                 plt.specgram(data[:,0], Fs=FS,  NFFT=128, noverlap=0)   
-            else: 
+            else:  #if the song is mono
                 plt.specgram(data, Fs=FS,  NFFT=128, noverlap=0)   
             ax = plt.axes()
             ax.set_axis_off()
@@ -189,6 +190,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             sim=diff/64
             sim=1-sim
             self.similarity.append(sim)
+        print("Similarity between hashes")
+        print(self.similarity)
+        print('\n')
 
         self.Feature1("output.wav","output")
         self.Feature2("output.wav","output")
@@ -197,26 +201,29 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         imgFeature = Image.open(fileFeature)
         self.FeatureHash = imagehash.phash(imgFeature)
 
-        #===========================similarity of Feature==============
+    #===========================similarity of Feature==============
         for j in range(len(self.arrayofHashFeature)):
             diffFeature=self.arrayofHashFeature[j]-self.FeatureHash  
             simFeature=diffFeature/64
             simFeature=1-simFeature
             self.similarityFeature1.append(simFeature)
-
+        print("Similarity Feature 1")
+        print(self.similarityFeature1)
+        print('\n')
     #======================nearest point  to the mixed song=============
         for j in range(len(self.spectral_Centroid)):
             diffFeature2X=self.spectral_Centroid[j][0]-self.spectral_CentroidOutput[0] #x2-x1
             diffFeature2Y=self.spectral_Centroid[j][1]-self.spectral_CentroidOutput[1] #y2-y1
             diffFeature2X=math.pow(diffFeature2X,2)
             diffFeature2Y=math.pow(diffFeature2Y,2)
-            lenth=math.sqrt(diffFeature2X+diffFeature2Y)
-            self.length.append(lenth)
+            length=math.sqrt(diffFeature2X+diffFeature2Y)
+            self.lengthFinal.append(length)
 
     #================================== simiarity hashes of Spectrograms  and Hashes of Feature Spectrograms================
         for i in range(len(self.spectral_Centroid)):
             self.sumHashAndFeature.append(str(self.similarityFeature1[i]+self.similarity[i])+" "+self.songs[i])
         self.sumHashAndFeature.sort(reverse = True) 
+        print(self.sumHashAndFeature)
         for i in range (6):
             self.ui.table1.setItem(i, 0,QtWidgets.QTableWidgetItem(str(self.sumHashAndFeature[i])))
 
