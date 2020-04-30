@@ -47,25 +47,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         for i in range(len(self.SG)):
             self.songs.append(relpath(self.SG[i], './database\\'))
         self.spectral_Centroid=[]
-        self.SG_Maker()
-        self.Feature1()
-        self.Feature2()
-
-        self.arrayofHash=self.Hash('./SG_DataBase/')
-        # print(self.arrayofHash[2])
-        self.arrayofHashFeature=self.Hash('./SG_DataBaseFeature/')
-        # print(self.arrayofHashFeature[2])
-
-
-       
         
+        for i in range(len(self.SG)):
+            self.SG_Maker(self.SG[i],i) #run only in first time then comment
+            self.Feature1(self.SG[i],i) #run only in first time then comment
+            self.Feature2(self.SG[i],i)
+        self.arrayofHash=self.Hash('./SG_DataBase/')
+        self.arrayofHashFeature=self.Hash('./SG_DataBaseFeature/')
 
-        # print(len(self.arrayofHashFeature))
-        #     # print(self.ls)
-       
-        # print(self.freq)
-        # print(self.time)
-        # print(coordinates)
     def Hash(self,folder):
         arrayofHash=[]
         self.data_dir_SG=folder
@@ -77,27 +66,20 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             arrayofHash.append(hashedVersion)
         return arrayofHash
     
-    def SG_Maker(self):
-        for i in range(len(self.SG)):
-            FS, data = wavfile.read(self.SG[i])  # read wav file
+    def SG_Maker(self,file,i):
+            FS, data = wavfile.read(file)  # read wav file
             data=data[0:60*FS]
             if data.ndim==2:
                 plt.specgram(data[:,0], Fs=FS,  NFFT=128, noverlap=0)   
             else: 
                 plt.specgram(data, Fs=FS,  NFFT=128, noverlap=0)   
-                # self.fs1=FS
-            #plt.show() #if you want to show the spectogram
-            
-            # ======= This part may help in getting the first minute ==========    
-              
             ax = plt.axes()
             ax.set_axis_off()
             plt.savefig('./SG_DataBase/sp_xyz' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
            
             
-    def Feature1(self):
-        for i in range(len(self.SG)):
-            FS, data = wavfile.read(self.SG[i])  # read wav file
+    def Feature1(self,file,i):#feature one is Peaks
+            FS, data = wavfile.read(file)  # read wav file
             data=data[0:60*FS]
             if data.ndim==2:
                 self.ls,self.freq, self.time =specgram(data[:,0], Fs=FS,  NFFT=4096, noverlap=2048)  # The spectogram
@@ -109,19 +91,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             coordinates = peak_local_max(Z1, min_distance=20, threshold_abs=20)
             self.showPeaks(Z1, freqs1, self.time, coordinates,i)
 
-    def Feature2(self):
-        for i in range(len(self.SG)):
-            FS, data = wavfile.read(self.SG[i])  # read wav file
+    def Feature2(self,file,i):#Featre 2 is spectral centroid
+            FS, data = wavfile.read(file)  # read wav file
             data=data[0:60*FS]
             if data.ndim==2:
                 self.ls,self.freq, self.time =specgram(data[:,0], Fs=FS,  NFFT=4096, noverlap=2048)  # The spectogram
             else: 
                 self.ls,self.freq, self.time =specgram(data, Fs=FS,  NFFT=4096, noverlap=2048)  # The spectogram            
             self.ls[self.ls == 0] = 1e-6
-            self.spectral_Centroid.append(self.spectralCentroid(self.ls))
-
-
-
+            if i=="output":
+                self.spectral_CentroidOutput=self.spectralCentroid(self.ls)
+            else:
+                self.spectral_Centroid.append(self.spectralCentroid(self.ls))
 
     def browse(self,n):
         options = QtWidgets.QFileDialog.Options()
@@ -172,7 +153,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         return Z_cut, freqs_cut
 
     def showPeaks(self, Z, freqs, t, coord,i):
-        fig = plt.figure(figsize=(10, 8), facecolor='white')
+        plt.figure(figsize=(10, 8), facecolor='white')
         plt.imshow(Z, cmap='viridis')
         plt.scatter(coord[:, 1], coord[:, 0])
         ax = plt.gca()
@@ -189,29 +170,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             plt.savefig('./SG_DataBaseFeature/FeaturePeak' + str(i)+'.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
 
-
-
-
     def mixing(self):
         self.MixerValue=self.ui.mixer.value()/100
-
         output=self.data1*self.MixerValue+self.data2*(1-self.MixerValue)
         data=np.array(output,dtype=np.float64)
-        
         output=data.astype(np.int16)
-     
-
-        # print(output)
         write("output.wav", 44100, output)
         plt.specgram(output, Fs=self.fs1, NFFT=128, noverlap=0)
-        
         ax = plt.axes()
         ax.set_axis_off()
         plt.savefig('output.png', bbox_inches='tight',  transparent=True,pad_inches=0, frameon='false')
         file='output.png'
         img = Image.open(file)
         self.hashedVersion = imagehash.phash(img)
-        print(self.hashedVersion)
 
         for i in range(len(self.arrayofHash)):
             diff=self.arrayofHash[i]-self.hashedVersion    
@@ -219,67 +190,33 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             sim=1-sim
             self.similarity.append(sim)
 
-            # self.similarity.append(str(sim)+" "+self.songs[i])
-        # self.similarity.sort(reverse = True) 
-       
-        # print(self.similarity)
-
-        self.lsOUT,self.freqOUT, self.timeOUT =specgram(output, Fs=self.fs1,  NFFT=4096, noverlap=2048)  # The spectogram
-        self.lsOUT[self.lsOUT == 0] = 1e-6
-        Z1, freqs1 = self.cutSpecgram(self.lsOUT, self.freqOUT)
-        coordinates = peak_local_max(Z1, min_distance=20, threshold_abs=20)
-        self.showPeaks(Z1, freqs1, self.timeOUT, coordinates,"output")
-        self.spectral_CentroidOutput=self.spectralCentroid(self.lsOUT)
-        print(self.spectral_CentroidOutput)
+        self.Feature1("output.wav","output")
+        self.Feature2("output.wav","output")
 
         fileFeature='FeaturePeakoutput.png'
         imgFeature = Image.open(fileFeature)
         self.FeatureHash = imagehash.phash(imgFeature)
-        # print(self.FeatureHash)
-        
+
+        #===========================similarity of Feature==============
         for j in range(len(self.arrayofHashFeature)):
             diffFeature=self.arrayofHashFeature[j]-self.FeatureHash  
             simFeature=diffFeature/64
             simFeature=1-simFeature
             self.similarityFeature1.append(simFeature)
-            # self.similarityFeature1.append(str(simFeature)+" "+self.songs[j])
-        # self.similarityFeature1.sort(reverse = True) 
-        # print(self.similarityFeature1)
 
-
-        # for k in range (len(self.arrayofHashFeature)):
-        #     avr=(self.similarity[k]+self.similarityFeature1[k])/2
-        #     self.avrage.append(str(avr)+" "+self.songs[k])
-        # self.avrage.sort(reverse = True) 
-        # print(self.avrage)
-       
-
-
-
-
-            
+    #======================nearest point  to the mixed song=============
         for j in range(len(self.spectral_Centroid)):
             diffFeature2X=self.spectral_Centroid[j][0]-self.spectral_CentroidOutput[0] #x2-x1
             diffFeature2Y=self.spectral_Centroid[j][1]-self.spectral_CentroidOutput[1] #y2-y1
             diffFeature2X=math.pow(diffFeature2X,2)
             diffFeature2Y=math.pow(diffFeature2Y,2)
             lenth=math.sqrt(diffFeature2X+diffFeature2Y)
-            # diffFeature2=np.subtract(self.spectral_Centroid[j],self.spectral_CentroidOutput)
-
-            # simFeature2=np.divide(diffFeature2,self.spectral_Centroid[j])
-            # simFeature2=1-simFeature2
-            # print(simFeature2)
-            # print(lenth)
             self.length.append(lenth)
-        # self.length.sort(reverse = False) 
-        # print(self.length)
+
+    #================================== simiarity hashes of Spectrograms  and Hashes of Feature Spectrograms================
         for i in range(len(self.spectral_Centroid)):
             self.sumHashAndFeature.append(str(self.similarityFeature1[i]+self.similarity[i])+" "+self.songs[i])
         self.sumHashAndFeature.sort(reverse = True) 
-        # print(self.similarityFeature1)
-       
-
-
         for i in range (6):
             self.ui.table1.setItem(i, 0,QtWidgets.QTableWidgetItem(str(self.sumHashAndFeature[i])))
 
